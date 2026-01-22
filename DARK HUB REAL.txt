@@ -1,0 +1,4 @@
+https://raw.githubusercontent.com/quocthai84248424-byte/darkhub/refs/heads/main/DARK%20HUB.txt
+-- [chill?] --
+-- [hello] --
+print("hi bro") 
