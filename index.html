@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OOPLB Compiler</title>
+
+<style>
+body{
+    background:#0d0d0d;
+    color:white;
+    font-family:monospace;
+    text-align:center;
+}
+
+#editor{
+    background:#111;
+    border:1px solid #333;
+    width:90%;
+    height:400px;
+    margin:auto;
+    padding:15px;
+    overflow:auto;
+    outline:none;
+    text-align:left;
+}
+
+/* syntax colors */
+.keyword{color:#ff4d4d;}
+.stop{color:#ff8800;}
+.every{color:#00ff66;}
+.service{color:#00bfff;}
+.boolean{color:#00ffcc;}
+.number{color:#ffcc00;}
+.string{color:#ff66ff;}
+.operator{color:#00ff99;}
+
+button{
+    background:#00cc44;
+    border:none;
+    padding:10px 15px;
+    margin:10px 5px;
+    cursor:pointer;
+}
+
+.small{
+    font-size:12px;
+}
+</style>
+</head>
+<body>
+
+<h2>OOPLB → Luau Compiler</h2>
+
+<div id="editor" contenteditable="true">
+Service is("Players")
+when 1 then
+print("hi")
+</div>
+
+<br>
+
+<button onclick="convert()">Chuyển đổi</button>
+<button onclick="copyCode()">Copy</button>
+<button onclick="downloadFile()">Tải File</button>
+<button onclick="saveLocal()">Lưu</button>
+<button onclick="loadLocal()">Load</button>
+<button onclick="getRaw()">Lấy RAW</button>
+
+<p class="small">
+<a href="tutorial.html" style="color:gray;">tutorial</a>
+</p>
+
+<script>
+
+const editor = document.getElementById("editor");
+
+/* ===========================
+   HIGHLIGHT
+=========================== */
+function highlight(code){
+
+    code = code.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+    code = code.replace(/\b(Service is)\b/gi,
+        '<span class="service">$1</span>');
+
+    code = code.replace(/\b(when|then)\b/gi,
+        '<span class="keyword">$1</span>');
+
+    code = code.replace(/\b(stop)\b/gi,
+        '<span class="stop">$1</span>');
+
+    code = code.replace(/\b(every)\b/gi,
+        '<span class="every">$1</span>');
+
+    code = code.replace(/\b(1|0)\b/g,
+        '<span class="boolean">$1</span>');
+
+    code = code.replace(/\b\d+\b/g,
+        '<span class="number">$&</span>');
+
+    code = code.replace(/"([^"]*)"/g,
+        '<span class="string">"$1"</span>');
+
+    code = code.replace(/(\+|\-|\*|\/)/g,
+        '<span class="operator">$1</span>');
+
+    return code;
+}
+
+/* realtime */
+editor.addEventListener("input", ()=>{
+    let text = editor.innerText;
+    editor.innerHTML = highlight(text);
+});
+
+/* ===========================
+   COMPILER
+=========================== */
+function compile(code){
+
+    code = code.replace(/\b1\b/g,"true");
+    code = code.replace(/\b0\b/g,"false");
+
+    code = code.replace(/Service is\("(.+?)"\)/gi,
+        'game:GetService("$1")');
+
+    code = code.replace(/\blocalme\b/gi,
+        'game.Players.LocalPlayer');
+
+    code = code.replace(/(\w+)\+Connect/gi,
+        '$1:Connect');
+
+    code = code.replace(/when (.+?) then/gi,
+        'if $1 then');
+
+    code = code.replace(/stop (.+?) ms/gi,
+        'task.wait($1/1000)');
+
+    code = code.replace(/stop (.+?) sec/gi,
+        'task.wait($1)');
+
+    code = code.replace(/stop (.+?) m\b/gi,
+        'task.wait($1*60)');
+
+    code = code.replace(/stop (.+?) h/gi,
+        'task.wait($1*3600)');
+
+    code = code.replace(/stop (.+?) d/gi,
+        'task.wait($1*86400)');
+
+    code = code.replace(/stop (.+?) y/gi,
+        'task.wait($1*31536000)');
+
+    code = code.replace(/every (.+?) sec/gi,
+        'while task.wait($1) do');
+
+    return code;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+function convert(){
+    let text = editor.innerText;
+    editor.innerText = compile(text);
+}
+
+function copyCode(){
+    navigator.clipboard.writeText(editor.innerText);
+}
+
+function downloadFile(){
+    const blob = new Blob([editor.innerText],{type:"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "script.lua";
+    a.click();
+}
+
+function saveLocal(){
+    localStorage.setItem("ooplb", editor.innerText);
+}
+
+function loadLocal(){
+    editor.innerText = localStorage.getItem("ooplb") || "";
+}
+
+function getRaw(){
+    const blob = new Blob([editor.innerText],{type:"text/plain"});
+    const link = URL.createObjectURL(blob);
+    alert("RAW LINK:\n"+link);
+}
+
+</script>
+
+</body>
+</html>
